@@ -75,16 +75,17 @@ public class ServidorService {
                             mapOnlines.put(message.getName(), output);
                         }
                     }else if (action.equals(Action.DISCONNECT)){
-                        
+                        disconnect(message, output);                     
                     }else if (action.equals(Action.SEND_ONE)){
-                        
+                        sendOne(message, output);                        
                     }else if (action.equals(Action.SEND_ALL)){
-                        
+                        sendAll(message);
                     }else if (action.equals(Action.USERS_ONLINE)){
                         
                     }
                 }
             } catch (IOException ex) {
+                disconnect(message, output);
                 Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
@@ -114,11 +115,34 @@ public class ServidorService {
         return false;
     }
     
+    private void disconnect(ChatMessage message, ObjectOutputStream output){
+        mapOnlines.remove(message.getName());
+        
+        message.setText("Deixou o Chat");
+        message.setAction(Action.SEND_ONE);
+        
+        sendAll(message);
+        
+        System.out.println("user " + message.getName() + " saiu do chat!");
+    }
+    
     private void sendOne(ChatMessage message, ObjectOutputStream output){
         try {
             output.writeObject(message);
         } catch (IOException ex) {
             Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void sendAll(ChatMessage message){
+        for(Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()){
+            if(!kv.getKey().equals(message.getName())){
+                try {
+                    kv.getValue().writeObject(message);
+                } catch (IOException ex) {
+                    Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
     
