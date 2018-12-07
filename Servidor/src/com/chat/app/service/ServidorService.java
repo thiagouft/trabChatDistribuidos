@@ -5,6 +5,8 @@
  */
 package com.chat.app.service;
 
+import com.chat.app.bean.ChatMessage;
+import com.chat.app.bean.ChatMessage.Action;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,7 +30,9 @@ public class ServidorService {
     
     public ServidorService(){
         try {
-            serverSocket = new ServerSocket(5555);
+            serverSocket = new ServerSocket(12345);
+            
+            System.out.println("Servidor ON na porta: " + serverSocket.getLocalPort());
             
             while(true){
                 socket = serverSocket.accept();
@@ -56,9 +60,45 @@ public class ServidorService {
         
         @Override
         public void run() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            
+            ChatMessage message = null;
+            
+            try {
+              
+                while((message = (ChatMessage) input.readObject()) != null){
+                    Action action = message.getAction();
+                    
+                    if(action.equals(Action.CONNECT)){
+                        connect(message, output);
+                    }else if (action.equals(Action.DISCONNECT)){
+                        
+                    }else if (action.equals(Action.SEND_ONE)){
+                        
+                    }else if (action.equals(Action.SEND_ALL)){
+                        
+                    }else if (action.equals(Action.USERS_ONLINE)){
+                        
+                    }
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
+    }
+    
+    private void connect(ChatMessage message, ObjectOutputStream output){
+        sendOne(message, output);
+    }
+    
+    private void sendOne(ChatMessage message, ObjectOutputStream output){
+        try {
+            output.writeObject(message);
+        } catch (IOException ex) {
+            Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }
