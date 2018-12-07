@@ -69,7 +69,11 @@ public class ServidorService {
                     Action action = message.getAction();
                     
                     if(action.equals(Action.CONNECT)){
-                        connect(message, output);
+                        boolean isConnect = connect(message, output);
+                        
+                        if(isConnect){
+                            mapOnlines.put(message.getName(), output);
+                        }
                     }else if (action.equals(Action.DISCONNECT)){
                         
                     }else if (action.equals(Action.SEND_ONE)){
@@ -89,8 +93,25 @@ public class ServidorService {
         
     }
     
-    private void connect(ChatMessage message, ObjectOutputStream output){
-        sendOne(message, output);
+    private boolean connect(ChatMessage message, ObjectOutputStream output){
+        if (mapOnlines.size() == 0){
+            message.setText("YES");
+            sendOne(message, output);
+            return true;
+        }
+        
+        for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()){
+            if(kv.getKey().equals(message.getName())){
+                message.setText("NO");
+                return false;
+            }else{
+                message.setText("YES");
+                sendOne(message, output);
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     private void sendOne(ChatMessage message, ObjectOutputStream output){
