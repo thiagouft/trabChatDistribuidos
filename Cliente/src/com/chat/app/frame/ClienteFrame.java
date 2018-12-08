@@ -8,15 +8,12 @@ package com.chat.app.frame;
 import com.chat.app.bean.ChatMessage;
 import com.chat.app.bean.ChatMessage.Action;
 import com.chat.app.service.ClienteService;
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import javax.swing.JTextArea;
 
 /**
  *
@@ -59,7 +56,7 @@ public class ClienteFrame extends javax.swing.JFrame {
                     if(action.equals(Action.CONNECT)){
                         connected(message);
                     }else if (action.equals(Action.DISCONNECT)){
-                        disconnect();
+                        disconnected();
                         socket.close();
                     }else if (action.equals(Action.SEND_ONE)){
                         receive(message);
@@ -76,51 +73,49 @@ public class ClienteFrame extends javax.swing.JFrame {
         
     }
         
-        private void connected(ChatMessage message){
-            if(message.getText().equals("NO")){
-                txtName.setText("");
-                JOptionPane.showMessageDialog(rootPane, "Conexão não realizada! tente novamente com um novo nome");
-                return;
-            }
-            message = message;
-            btnConectar.setEnabled(false);
-            txtName.setEditable(false);
-            
-            btnSair.setEnabled(true);
-            txtAreaSend.setEnabled(true);
-            btnEnviar.setEnabled(true);
-            btnLimpar.setEnabled(true);
-            txtAreaReceive.setEnabled(true);
-            btnAtualizar.setEnabled(true);
-            JOptionPane.showMessageDialog(rootPane, "Você está conectado no chat!");
+    private void connected(ChatMessage message) {
+        if (message.getText().equals("NO")) {
+            this.txtName.setText("");
+            JOptionPane.showMessageDialog(this, "Conexão não realizada! tente novamente com um novo nome");
+            return;
         }
         
-        private void disconnect(){
-            try {
-                socket.close();
-                btnConectar.setEnabled(true);
-                txtName.setEditable(true);
-                
-                btnSair.setEnabled(false);
-                txtAreaSend.setEnabled(false);
-                btnEnviar.setEnabled(false);
-                btnLimpar.setEnabled(false);
-                txtAreaReceive.setEnabled(false);
-                btnAtualizar.setEnabled(false);
-                
-                JOptionPane.showMessageDialog(rootPane, "Você saiu do chat");
-                
-            } catch (IOException ex) {
-                Logger.getLogger(ClienteFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        private void receive(ChatMessage message){
-            txtAreaReceive.append(message.getName() + "diz:" + message.getText() + "\n");
-        }
-        
-        private void refreshOnlinnes(ChatMessage message){
-        }
+        this.message = message;
+        this.btnConectar.setEnabled(false);
+        this.txtName.setEditable(false);
+
+        this.btnSair.setEnabled(true);
+        this.txtAreaSend.setEnabled(true);
+        this.btnEnviar.setEnabled(true);
+        this.btnLimpar.setEnabled(true);
+        this.txtAreaReceive.setEnabled(true);
+        this.btnAtualizar.setEnabled(true);
+        JOptionPane.showMessageDialog(this, "Você está conectado no chat!");
+    }
+
+    private void disconnected() {
+
+        //socket.close();
+        this.btnConectar.setEnabled(true);
+        this.txtName.setEditable(true);
+
+        this.btnSair.setEnabled(false);
+        this.txtAreaSend.setEnabled(false);
+        this.btnEnviar.setEnabled(false);
+        this.btnLimpar.setEnabled(false);
+        this.txtAreaReceive.setEnabled(false);
+        this.btnAtualizar.setEnabled(false);
+
+        JOptionPane.showMessageDialog(this, "Você saiu do chat");
+
+    }
+
+    private void receive(ChatMessage message) {
+        this.txtAreaReceive.append(message.getName() + " diz: " + message.getText() + "\n");
+    }
+
+    private void refreshOnlinnes(ChatMessage message) {
+    }
         
     
 
@@ -321,14 +316,13 @@ public class ClienteFrame extends javax.swing.JFrame {
         if(!name.isEmpty()){
             this.message = new ChatMessage();
             this.message.setAction(Action.CONNECT);
-            this.message.setName(name);
+            this.message.setName(name);            
             
-            if(this.socket == null){
-                this.service = new ClienteService();
-                this.socket = this.service.connect();
-                
-                new Thread(new ListenerSocket(this.socket)).start();
-            }
+            this.service = new ClienteService();
+            this.socket = this.service.connect();
+
+            new Thread(new ListenerSocket(this.socket)).start();
+
             
             this.service.send(message);
         }
@@ -337,7 +331,7 @@ public class ClienteFrame extends javax.swing.JFrame {
     private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairActionPerformed
         message.setAction(Action.DISCONNECT);
         service.send(message);
-        disconnect();
+        disconnected();
         
     }//GEN-LAST:event_btnSairActionPerformed
 
@@ -346,7 +340,18 @@ public class ClienteFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnLimparActionPerformed
 
     private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
-        // TODO add your handling code here:
+        String text = this.txtAreaSend.getText();
+        String name = this.message.getName();
+        
+        if (!text.isEmpty()) {
+            this.message = new ChatMessage();
+            this.message.setName(name);
+            this.message.setText(text);
+            this.message.setAction(Action.SEND_ALL);
+
+            this.service.send(this.message);
+        }
+        this.txtAreaSend.setText("");
     }//GEN-LAST:event_btnEnviarActionPerformed
 
     

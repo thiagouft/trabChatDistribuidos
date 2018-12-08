@@ -75,7 +75,8 @@ public class ServidorService {
                             mapOnlines.put(message.getName(), output);
                         }
                     }else if (action.equals(Action.DISCONNECT)){
-                        disconnect(message, output);                     
+                        disconnect(message, output); 
+                        return;
                     }else if (action.equals(Action.SEND_ONE)){
                         sendOne(message, output);                        
                     }else if (action.equals(Action.SEND_ALL)){
@@ -86,7 +87,7 @@ public class ServidorService {
                 }
             } catch (IOException ex) {
                 disconnect(message, output);
-                Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println(message.getName() + " deixou o chat!");
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -118,7 +119,7 @@ public class ServidorService {
     private void disconnect(ChatMessage message, ObjectOutputStream output){
         mapOnlines.remove(message.getName());
         
-        message.setText("Deixou o Chat");
+        message.setText("Até Logo!!");
         message.setAction(Action.SEND_ONE);
         
         sendAll(message);
@@ -137,7 +138,8 @@ public class ServidorService {
     private void sendAll(ChatMessage message){
         for(Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()){
             if(!kv.getKey().equals(message.getName())){
-                try {
+                message.setAction(Action.SEND_ONE);
+                try {                    
                     kv.getValue().writeObject(message);
                 } catch (IOException ex) {
                     Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
